@@ -1,0 +1,54 @@
+<div class="row">
+    <div class="col-md-12 general-block-decorator">
+        <div class="row">
+            <div class="col-md-12 title title-without-tabs">
+                {intl d='paygreenclimatekit.bo.default' l="PayGreenClimateKit Configuration"}
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div class="row">
+                <div class="col-md-12">
+                    {form name="paygreenClimatekit_configuration"}
+                    <form action="{url path="/admin/module/paygreenClimatekit/configure"}" method="post">
+                    {form_hidden_fields}
+
+                    {include file = "includes/inner-form-toolbar.html"
+                    hide_flags = true
+                    page_url   = "{url path='/admin/module/PayGreenClimateKit'}"
+                    close_url  = "{url path='/admin/modules'}"
+                    }
+
+                    {if $form_error}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert alert-danger">{$form_error_message}</div>
+                        </div>
+                    </div>
+                    {/if}
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="title title-without-tabs">{intl d='paygreenclimatekit.bo.default' l="PayGreenClimateKit module configuration"}</p>
+                            {render_form_field field="accountName" value=$accountName}
+                            {render_form_field field="userName" value=$userName}
+                            {render_form_field field="password" value=$password}
+                            {form_field field="download"}
+                            <a href="/admin/module/paygreenClimatekit/downloadCatalog" type="button">{$label}</a>
+                            {/form_field}
+                        </div>
+                        <div class="col-md-4">
+                            <p class="title title-without-tabs">{intl d='paygreenclimatekit.bo.default' l="Operation mode"}</p>
+                            {render_form_field field="mode" value=$mode}
+                        </div>
+
+                    </div>
+                    </form>
+                    {/form}
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
