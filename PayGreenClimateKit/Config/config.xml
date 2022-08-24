@@ -21,8 +21,9 @@
     -->
 
     <hooks>
-        <hook id="paygreenClimatekit.configuration.hook" class="PayGreenClimateKit\Hook\HookManager" scope="request">
+        <hook id="paygreenClimatekit.configuration.hook" class="PayGreenClimateKit\Hook\HookManager">
             <tag name="hook.event_listener" event="module.configuration" type="back" method="onModuleConfigure" />
+            <tag name="hook.event_listener" event="order-invoice.javascript-initialization" type="front" method="onOrderInvoiceJavascript" />
         </hook>
     </hooks>
 

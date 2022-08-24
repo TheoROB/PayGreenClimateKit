@@ -32,5 +32,9 @@
         <default key="_controller">PayGreenClimateKit\Controller\ConfigureController::downloadCatalog</default>
     </route>
 
+    <route id="paygreenClimatekit.download.activate" path="/admin/module/paygreenClimatekit/activatePaygreen">
+      <default key="_controller">PayGreenClimateKit\Controller\ConfigureController::activatePaygreen</default>
+    </route>
+
 
 </routes>

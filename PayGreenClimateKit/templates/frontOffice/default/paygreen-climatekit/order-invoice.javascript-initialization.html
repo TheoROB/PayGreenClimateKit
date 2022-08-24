@@ -1,0 +1,109 @@
+<script src="https://carbonbot.paygreen.fr/1.2/carbon-bot.js"></script>
+<script>
+    const div = document.createElement('div');
+    div.setAttribute('data-paygreen-carbon-banner', "");
+    const paymentMethod = document.getElementById("payment-method");
+    paymentMethod.parentNode.insertBefore(div, paymentMethod);
+
+    const translations = {};
+
+    switch('{lang attr="locale"}') {
+        case 'fr_FR':
+            translations.fr =
+                {
+                    title: "Mon achat contribuant à la neutralité carbone !",
+                    engagementDescription: "vous propose de compenser votre impact carbone. 🎉",
+                    shipping: "Votre transporteur compense ses propres émissions : vous n’avez que au lieu de à verser pour que votre achat contribue à la neutralité carbone !",
+                    offset: "Financer un projet climatique à hauteur de",
+                    goal: "Contribuer à la neutralité carbone"
+                };
+            break;
+        case 'en_US':
+            translations.en = {
+                title: "My purchase contributing to carbon neutrality",
+                engagementDescription: "OK finances GHG reduction and sequestration projects up to the amount of your emissions. 🎉",
+                shipping: "Your carrier compensates for its own emissions: you only have to pay 15 instead of to make your purchase carbon neutral!",
+                offset: "Fund a climate project up to 15",
+                goal: "Contribute to carbon neutrality"
+            };
+            break;
+        case 'es_ES':
+            translations.es = {
+                title: "Mi compra contribuye a la neutralidad del carbono",
+                engagementDescription: "OK financia proyectos de reducción y secuestro de GEI hasta el importe de sus emisiones. 🎉",
+                shipping: "Su transportista compensa sus propias emisiones: ¡sólo tiene que pagar 15 en lugar de para que su compra sea neutra en carbono!",
+                offset: "Financiar un proyecto climático de hasta 15",
+                goal: "Contribuir a la neutralidad del carbono"
+            };
+            break;
+        default:
+            translations.en = {
+                title: "My purchase contributing to carbon neutrality",
+                engagementDescription: "OK finances GHG reduction and sequestration projects up to the amount of your emissions. 🎉",
+                shipping: "Your carrier compensates for its own emissions: you only have to pay 15 instead of to make your purchase carbon neutral!",
+                offset: "Fund a climate project up to 15",
+                goal: "Contribute to carbon neutrality"
+            };
+    }
+
+    console.log('user:{$paygreenUser}, footprint:{$paygreenFootprintId}, token:{$paygreenToken}');
+
+    carbonBot.init({
+        endpoint: "https://api-climatekit.paygreen.fr",
+        testMode: {$paygreenTestMode}, // boolean, use api in test mode or not
+        locale: "{lang attr='code'}", // optionnal: fr, en, es
+        shopName: "{config key='store_name'}", // optionnal
+        bot: {
+            user: {$paygreenUser}, // required
+            footprint: "{$paygreenFootprintId}", // required
+            token: "{$paygreenToken}", // required
+            position: "right", // optionnal: left, right
+            colors: { // optionnal
+                primary: "#556B2F",
+            },
+            displayed: true, // optionnal, display or not the CarbonBot
+        },
+        banner: { // optionnal: allows you to configure the contribution banner
+            addContributionAction: function(price) {
+                console.log('Add contribution of '+ price + ' cents in the cart.'
+                );
+                window.location.replace("/add-to-cart?price=" + price);
+            },
+            removeContributionAction: function() {
+                console.log(`Remove contribution from cart.`);
+                window.location.replace("/add-to-cart?price=" + price);
+            },
+            hasContributionInCart: false, // boolean, whether the contribution is in the cart or not
+            displayed: true, // optionnal, display or not the contribution banner
+        },
+        cart: {
+            price: {cart attr="total_taxed_price"}, // current cart price in cent
+            weight: {cart attr="weight"}, // current cart weight in kg
+            shippingFromAddress: {
+                street: "{config key='store_address1'}",
+                city: "{config key='store_city'}",
+                postcode: "{config key='store_zipcode'}",
+                country: "{loop type="country" name="dsf" id={config key="store_country"}}{$TITLE}{/loop}"
+            },
+            shippingToAddress: {
+    {loop type="address" name="delivery-address" id={order attr="delivery_address"}}
+    street: '{$ADDRESS1|replace:"'":"\\'"} {$ADDRESS2|replace:"'":"\\'"} {$ADDRESS3|replace:"'":"\\'"}',
+        city: '{$CITY|replace:"'":"\\'"}',
+        postcode: '{$ZIPCODE}',
+        country: "{loop type="country" name="dsf" id=$COUNTRY}{$TITLE}{/loop}"
+    {/loop}
+    },
+    transportationExternalId: "1-28022",
+        deliveryService : "{loop type="module" name="d" id={order attr="delivery_module"}}{$TITLE}{/loop}", // optionnal: set "Colissimo" if you use it
+        items: [
+        {loop type="cart" name="df"}
+        {
+            productExternalReference: "{$REF}",
+            quantity: {$QUANTITY},
+            exTaxPriceInCents: {$TOTAL_PRICE} * 100, // price without tax in cent
+        }{if $LOOP_COUNT < $LOOP_TOTAL},{/if}
+        {/loop}
+    ]
+    }
+    });
+</script>

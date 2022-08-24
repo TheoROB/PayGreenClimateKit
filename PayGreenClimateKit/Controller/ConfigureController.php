@@ -1,11 +1,20 @@
 <?php
 
+/*
+ * This file is part of the Thelia package.
+ * http://www.thelia.net
+ *
+ * (c) OpenStudio <info@thelia.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace PayGreenClimateKit\Controller;
 
 use PayGreenClimateKit\PayGreenClimateKit;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Thelia\Controller\Admin\BaseAdminController;
-use Thelia\Core\HttpFoundation\Response;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Form\Exception\FormValidationException;
@@ -13,9 +22,12 @@ use Thelia\Model\Category;
 use Thelia\Model\CategoryQuery;
 use Thelia\Model\Currency;
 use Thelia\Model\Lang;
-use Thelia\Model\LangQuery;
 use Thelia\Model\ProductSaleElementsQuery;
 use Thelia\Tools\URL;
+use Http\Client\Curl\Client;
+use Paygreen\Sdk\Climate\V2\Model\Address;
+use Paygreen\Sdk\Climate\V2\Model\DeliveryData;
+
 
 class ConfigureController extends BaseAdminController
 {
@@ -26,7 +38,6 @@ class ConfigureController extends BaseAdminController
         }
 
         $configurationForm = $this->createForm('paygreenClimatekit_configuration');
-        $message = null;
 
         try {
             $form = $this->validateForm($configurationForm);
@@ -35,19 +46,18 @@ class ConfigureController extends BaseAdminController
             $data = $form->getData();
 
             foreach ($data as $name => $value) {
-                if (is_array($value)) {
+                if (\is_array($value)) {
                     $value = implode(';', $value);
                 }
 
                 PayGreenClimateKit::setConfigValue($name, $value);
             }
 
-
             // Log configuration modification
             $this->adminLogAppend(
-                "paygreenClimatekit.configuration.message",
+                'paygreenClimatekit.configuration.message',
                 AccessManager::UPDATE,
-                "PayGreenClimateKit configuration updated"
+                'PayGreenClimateKit configuration updated'
             );
 
             // Redirect to the success URL,
@@ -66,7 +76,7 @@ class ConfigureController extends BaseAdminController
             $message = $ex->getMessage();
         }
         $this->setupFormErrorContext(
-            $this->getTranslator()->trans("PayGreenClimateKit configuration", [], PayGreenClimateKit::DOMAIN_NAME),
+            $this->getTranslator()->trans('PayGreenClimateKit configuration', [], PayGreenClimateKit::DOMAIN_NAME),
             $message,
             $configurationForm,
             $ex
@@ -75,7 +85,7 @@ class ConfigureController extends BaseAdminController
         return $this->generateRedirect(URL::getInstance()->absoluteUrl('/admin/module/PayGreenClimateKit'));
     }
 
-    public function downloadCatalog()
+    public function downloadCatalog(): void
     {
         $locale = Lang::getDefaultLanguage()->getLocale();
         $currency = Currency::getDefaultCurrency();
@@ -85,9 +95,9 @@ class ConfigureController extends BaseAdminController
 
         $response = new StreamedResponse();
         $response->headers->set('X-Accel-Buffering', 'no');
-        $response->setCallback(function () use ($currency, $locale, $pseList) {
-            $fh = fopen("php://output", 'wb');
-            $ligne = ['nom','ID-tech','code article','poids','prix hors taxe','categorie_1','categorie_2','categorie_3'];
+        $response->setCallback(function () use ($currency, $locale, $pseList): void {
+            $fh = fopen('php://output', 'w');
+            $ligne = ['nom', 'ID-tech', 'code article', 'poids', 'prix hors taxe', 'categorie_1', 'categorie_2', 'categorie_3'];
             fputcsv($fh, $ligne);
             foreach ($pseList as $pse) {
                 /** @var Category[] $pathCategory */
@@ -111,5 +121,45 @@ class ConfigureController extends BaseAdminController
         $response->headers->set('Content-Type', 'text/csv');
         $response->headers->set('Content-Disposition', 'attachment; filename="catalog.csv"');
         $response->send();
+    }
+
+    public function activatePaygreen(): void
+    {
+        $accountName = PayGreenClimateKit::getConfigValue('accountName');
+        $userName = PayGreenClimateKit::getConfigValue('userName');
+        $password = PayGreenClimateKit::getConfigValue('password');
+
+
+        $curl = new Client();
+
+        $environment = new \Paygreen\Sdk\Climate\V2\Environment(
+            $clientId,
+            'PRODUCTION',
+            2
+        );
+
+        $environment->setTestMode(true);
+
+        $client = new \Paygreen\Sdk\Climate\V2\Client($curl, $environment);
+
+        $response = $client->login($accountName, $userName, $password);
+        $responseData = json_decode($response->getBody()->getContents());
+        dump($responseData);
+
+        $client->setBearer($responseData->access_token);
+
+        $response = $client->refresh('openstudio-toulouse', $responseData->refresh_token);
+        $responseData = json_decode($response->getBody()->getContents());
+        dump($responseData);
+
+//        $client->setBearer($responseData->access_token);
+
+        $response = $client->getCurrentUserInfos();
+        $responseData = json_decode($response->getBody()->getContents());
+        dump($responseData);
+
+        $response = $client->createEmptyFootprint('my-footprint-id');
+        $responseData = json_decode($response->getBody()->getContents());
+        dump($responseData);
     }
 }

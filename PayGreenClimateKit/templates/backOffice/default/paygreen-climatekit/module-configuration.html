@@ -33,13 +33,13 @@
                             {render_form_field field="accountName" value=$accountName}
                             {render_form_field field="userName" value=$userName}
                             {render_form_field field="password" value=$password}
-                            {form_field field="download"}
-                            <a href="/admin/module/paygreenClimatekit/downloadCatalog" type="button">{$label}</a>
-                            {/form_field}
+                            {render_form_field field="clientId" value=$clientId}
+                            <a href="/admin/module/paygreenClimatekit/downloadCatalog" type="button">{intl d='paygreenclimatekit.bo.default' l="download the catalog in csv format"}</a>
                         </div>
                         <div class="col-md-4">
                             <p class="title title-without-tabs">{intl d='paygreenclimatekit.bo.default' l="Operation mode"}</p>
-                            {render_form_field field="mode" value=$mode}
+                            {render_form_field field="mode"}
+                            <a href="/admin/module/paygreenClimatekit/activatePaygreen" type="button">{intl d='paygreenclimatekit.bo.default' l="test"}</a>
                         </div>
 
                     </div>
