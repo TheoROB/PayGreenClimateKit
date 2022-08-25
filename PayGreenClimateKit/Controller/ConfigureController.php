@@ -12,22 +12,27 @@
 
 namespace PayGreenClimateKit\Controller;
 
+use Front\Controller\CartController;
+use Http\Client\Curl\Client;
+use OpenApi\Model\Api\CartItem;
 use PayGreenClimateKit\PayGreenClimateKit;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Thelia\Controller\Admin\BaseAdminController;
+use Thelia\Core\Event\Category\CategoryCreateEvent;
+use Thelia\Core\Event\Product\ProductCreateEvent;
+use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Form\Exception\FormValidationException;
+use Thelia\Model\CartItemQuery;
 use Thelia\Model\Category;
 use Thelia\Model\CategoryQuery;
 use Thelia\Model\Currency;
 use Thelia\Model\Lang;
 use Thelia\Model\ProductSaleElementsQuery;
+use Thelia\Model\TaxRuleQuery;
 use Thelia\Tools\URL;
-use Http\Client\Curl\Client;
-use Paygreen\Sdk\Climate\V2\Model\Address;
-use Paygreen\Sdk\Climate\V2\Model\DeliveryData;
-
 
 class ConfigureController extends BaseAdminController
 {
@@ -128,7 +133,7 @@ class ConfigureController extends BaseAdminController
         $accountName = PayGreenClimateKit::getConfigValue('accountName');
         $userName = PayGreenClimateKit::getConfigValue('userName');
         $password = PayGreenClimateKit::getConfigValue('password');
-
+        $clientId = PayGreenClimateKit::getConfigValue('clientId');
 
         $curl = new Client();
 
@@ -161,5 +166,50 @@ class ConfigureController extends BaseAdminController
         $response = $client->createEmptyFootprint('my-footprint-id');
         $responseData = json_decode($response->getBody()->getContents());
         dump($responseData);
+    }
+
+    public function addContributionAction(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $price = $_GET['price'];
+        $locale = Lang::getDefaultLanguage()->getLocale();
+
+        // Créer automatiqsuement la catégorie
+        $categoryCreateEvent = new CategoryCreateEvent();
+
+        $categoryCreateEvent
+            ->setParent(0)
+            ->setLocale($locale)
+            ->setVisible(false)
+            ->setTitle('Contribution');
+
+        $dispatcher->dispatch(TheliaEvents::CATEGORY_CREATE, $categoryCreateEvent);
+
+        $category = $categoryCreateEvent->getCategory();
+
+
+        $taxRuleId = TaxRuleQuery::create()->findOneByIsDefault(true)->getId();
+
+        $currencyId = Currency::getDefaultCurrency()->getId();
+
+        $createProductEvent = new ProductCreateEvent();
+        $createProductEvent
+            ->setRef($nouvelleRef)
+            ->setLocale($locale)
+            ->setTitle('PaygreenContribution')
+
+            ->setVisible(false)
+            ->setVirtual(false)
+            ->setTaxRuleId($taxRuleId)
+            ->setDefaultCategory($category->getId())
+            ->setBasePrice($price)
+            ->setCurrencyId($currencyId)
+            ->setBaseWeight(0);
+
+        $dispatcher->dispatch(TheliaEvents::PRODUCT_CREATE, $createProductEvent);
+    }
+
+    public function removeContributionAction(): void
+    {
     }
 }

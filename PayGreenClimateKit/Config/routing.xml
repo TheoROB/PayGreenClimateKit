@@ -32,9 +32,18 @@
         <default key="_controller">PayGreenClimateKit\Controller\ConfigureController::downloadCatalog</default>
     </route>
 
-    <route id="paygreenClimatekit.download.activate" path="/admin/module/paygreenClimatekit/activatePaygreen">
+    <route id="paygreenClimatekit.activate" path="/admin/module/paygreenClimatekit/activatePaygreen">
       <default key="_controller">PayGreenClimateKit\Controller\ConfigureController::activatePaygreen</default>
     </route>
+
+    <route id="paygreenClimatekit.addContributionAction" path='/paygreen/climatekit/addContributionAction'>
+      <default key="_controller">PayGreenClimateKit\Controller\ConfigureController::addContributionAction</default>
+    </route>
+
+    <route id="paygreenClimatekit.removeContributionAction" path="/paygreen/climatekit/removeContributionAction">
+      <default key="_controller">PayGreenClimateKit\Controller\ConfigureController::removeContributionAction</default>
+    </route>
+
 
 
 </routes>

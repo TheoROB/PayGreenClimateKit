@@ -65,13 +65,14 @@
         },
         banner: { // optionnal: allows you to configure the contribution banner
             addContributionAction: function(price) {
+                const urladdContributionAction = "{url path='/paygreen/climatekit/addContributionAction' price='__PRICE__'}".replace('__PRICE__', price);
                 console.log('Add contribution of '+ price + ' cents in the cart.'
                 );
-                window.location.replace("/add-to-cart?price=" + price);
+                window.location.replace(urladdContributionAction);
             },
             removeContributionAction: function() {
                 console.log(`Remove contribution from cart.`);
-                window.location.replace("/add-to-cart?price=" + price);
+                window.location.replace("/admin/module/paygreenClimatekit/removeContributionAction?price=" + price);
             },
             hasContributionInCart: false, // boolean, whether the contribution is in the cart or not
             displayed: true, // optionnal, display or not the contribution banner
