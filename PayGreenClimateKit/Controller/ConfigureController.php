@@ -12,9 +12,7 @@
 
 namespace PayGreenClimateKit\Controller;
 
-use Front\Controller\CartController;
 use Http\Client\Curl\Client;
-use OpenApi\Model\Api\CartItem;
 use PayGreenClimateKit\PayGreenClimateKit;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -25,7 +23,6 @@ use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Form\Exception\FormValidationException;
-use Thelia\Model\CartItemQuery;
 use Thelia\Model\Category;
 use Thelia\Model\CategoryQuery;
 use Thelia\Model\Currency;
@@ -170,9 +167,9 @@ class ConfigureController extends BaseAdminController
 
     public function addContributionAction(): void
     {
-        $dispatcher = new EventDispatcher();
         $price = $_GET['price'];
         $locale = Lang::getDefaultLanguage()->getLocale();
+        $dispatcher = new EventDispatcher();
 
         // Créer automatiqsuement la catégorie
         $categoryCreateEvent = new CategoryCreateEvent();
@@ -181,12 +178,29 @@ class ConfigureController extends BaseAdminController
             ->setParent(0)
             ->setLocale($locale)
             ->setVisible(false)
-            ->setTitle('Contribution');
+            ->setLocale('en_US')
+            ->setTitle('Contribution')
+            ->setLocale('fr_FR')
+            ->setTitle('Contribution')
+            ->setLocale('es_ES')
+            ->setTitle('Contribución')
+        ;
 
-        $dispatcher->dispatch(TheliaEvents::CATEGORY_CREATE, $categoryCreateEvent);
+        $dispatcher->dispatch($categoryCreateEvent, TheliaEvents::CATEGORY_CREATE);
 
-        $category = $categoryCreateEvent->getCategory();
+        $category = new Category();
 
+        $category
+            ->setParent(0)
+            ->setLocale($locale)
+            ->setVisible(false)
+            ->setLocale('en_US')
+            ->setTitle('Contribution')
+            ->setLocale('fr_FR')
+            ->setTitle('Contribution')
+            ->setLocale('es_ES')
+            ->setTitle('Contribución')
+            ->save();
 
         $taxRuleId = TaxRuleQuery::create()->findOneByIsDefault(true)->getId();
 
@@ -194,10 +208,9 @@ class ConfigureController extends BaseAdminController
 
         $createProductEvent = new ProductCreateEvent();
         $createProductEvent
-            ->setRef($nouvelleRef)
+            ->setRef('')
             ->setLocale($locale)
             ->setTitle('PaygreenContribution')
-
             ->setVisible(false)
             ->setVirtual(false)
             ->setTaxRuleId($taxRuleId)
@@ -206,8 +219,12 @@ class ConfigureController extends BaseAdminController
             ->setCurrencyId($currencyId)
             ->setBaseWeight(0);
 
-        $dispatcher->dispatch(TheliaEvents::PRODUCT_CREATE, $createProductEvent);
+
+
+        $dispatcher->dispatch($createProductEvent, TheliaEvents::PRODUCT_CREATE);
     }
+
+
 
     public function removeContributionAction(): void
     {
